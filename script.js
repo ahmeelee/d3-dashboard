@@ -1,3 +1,5 @@
+let selectedCategory = null;
+
 // 1. Interactive Table
 
 const tableData = [
@@ -44,7 +46,8 @@ const tableData = [
       .on("click", function(event, d) {
         d3.selectAll("tr").style("background-color", null);
         d3.select(this).style("background-color", "#e6f7ff");
-        console.log("Selected row:", d);
+        selectedCategory = d.Category;
+        renderBarChart(barData);
       });
   
     rows.selectAll("td")
@@ -184,7 +187,7 @@ const tableData = [
       .attr("y", d => y(d.Total))
       .attr("width", x.bandwidth())
       .attr("height", d => height - y(d.Total))
-      .attr("fill", "#4682b4");
+      .attr("fill", d => d.Category === selectedCategory ? "#f28e2c" : "#4682b4");
   
     svg.append("g")
       .attr("transform", `translate(0,${height})`)
