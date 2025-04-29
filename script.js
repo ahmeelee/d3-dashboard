@@ -1,3 +1,7 @@
+// -------------------------------
+// 🟢 1. 인터랙티브 테이블
+// -------------------------------
+
 const data = [
     { Country: "USA", Category: "Dark", Sales: "120", Price: "2.5" },
     { Country: "France", Category: "Milk", Sales: "90", Price: "2.2" },
@@ -51,6 +55,10 @@ const data = [
       .append("td")
       .text(d => d);
   }
+  
+  // -------------------------------
+  // 🔵 2. 시계열 에어리어 차트 with Brush
+  // -------------------------------
   
   const timeSeriesData = [
     { date: "2022-01-01", value: 200 },

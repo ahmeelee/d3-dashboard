@@ -7,6 +7,10 @@ body {
     margin-bottom: 1rem;
   }
   
+  #area-chart {
+    margin-bottom: 2rem;
+  }
+  
   table {
     border-collapse: collapse;
     margin-top: 1rem;
