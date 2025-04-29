@@ -1,11 +1,10 @@
 let selectedCategory = null;
-let selectedTimeRange = null; 
+let selectedTimeRange = null;
 
 d3.csv("Chocolate-Sales.csv").then(raw => {
   const parseDate = d3.timeParse("%d-%b-%y");
   const formatDate = d3.timeFormat("%Y-%m-%d");
 
-  // Data Preprocessing
   const data = raw.map(d => ({
     Country: d.Country,
     Product: d.Product,
@@ -171,7 +170,7 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
     const width = 600 - margin.left - margin.right;
     const height = 300 - margin.top - margin.bottom;
 
-    const colorScale = d3.scaleOrdinal(d3.schemeTableau10); 
+    const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
     const svg = d3.select("#bar-chart")
       .append("svg")
@@ -201,9 +200,9 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
       .attr("fill", d => d.Category === selectedCategory ? "#f28e2c" : colorScale(d.Category))
       .on("click", function(event, d) {
         if (selectedCategory === d.Category) {
-          selectedCategory = null; 
+          selectedCategory = null;
         } else {
-          selectedCategory = d.Category; 
+          selectedCategory = d.Category;
         }
         renderBarChart(data, fullData);
         updateTable(fullData);

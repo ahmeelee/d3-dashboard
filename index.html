@@ -7,10 +7,20 @@
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-    <h1>Chocolate Sales Dashboard</h1>
-    <div id="area-chart"></div>     <!-- Time Series Chart -->
-    <div id="bar-chart"></div>      <!-- Bar Chart -->
-    <div id="data-table"></div>     <!-- Table -->
-    <script src="script.js"></script>
-  </body>
+  <h1>Chocolate Sales Dashboard</h1>
+
+  <div class="dashboard">
+    <div class="charts">
+      <div id="area-chart"></div>
+      <div id="bar-chart"></div>
+    </div>
+
+    <div id="data-table-container">
+      <h2>Sales Data</h2>
+      <div id="data-table"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
 </html>
