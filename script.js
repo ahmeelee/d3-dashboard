@@ -1,5 +1,7 @@
 let selectedCategory = null;
 let selectedTimeRange = null;
+let selectedDate = null;
+
 let fullData = [];
 let barDataFull = [];
 
@@ -57,6 +59,10 @@ function updateTable() {
     filtered = filtered.filter(d => d.Product === selectedCategory);
   }
 
+  if (selectedDate) {
+    filtered = filtered.filter(d => d.Date === selectedDate);
+  }
+
   if (searchText) {
     filtered = filtered.filter(d => d.Product.toLowerCase().includes(searchText));
   }
@@ -82,7 +88,9 @@ function updateTable() {
       d3.selectAll("tr").style("background-color", null);
       d3.select(this).style("background-color", "#e6f7ff");
       selectedCategory = d.Product;
+      selectedDate = null; 
       renderBarChart();
+      renderAreaChartAgain();
       updateTable();
     });
 
@@ -94,7 +102,11 @@ function updateTable() {
 }
 
 function renderAreaChart(rawData) {
+  d3.select("#area-chart").html(""); 
+
   const parse = d3.timeParse("%Y-%m-%d");
+  const format = d3.timeFormat("%Y-%m-%d");
+
   const data = rawData.map(d => ({ date: parse(d.date), value: +d.value }));
 
   const margin = { top: 20, right: 30, bottom: 100, left: 40 };
@@ -131,12 +143,48 @@ function renderAreaChart(rawData) {
     .y0(contextHeight)
     .y1(d => yContext(d.value));
 
-  focus.append("path").datum(data).attr("fill", "#69b3a2").attr("d", area);
-  focus.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
-  focus.append("g").call(d3.axisLeft(y));
+  const focusPath = focus.append("path")
+    .datum(data)
+    .attr("fill", "#69b3a2")
+    .attr("d", area);
 
-  context.append("path").datum(data).attr("fill", "#ccc").attr("d", areaContext);
-  context.append("g").attr("transform", `translate(0,${contextHeight})`).call(d3.axisBottom(xContext));
+  focus.selectAll("circle")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("cx", d => x(d.date))
+    .attr("cy", d => y(d.value))
+    .attr("r", 3)
+    .attr("fill", d => selectedDate && format(d.date) === selectedDate ? "orange" : "steelblue")
+    .style("cursor", "pointer")
+    .on("click", function(event, d) {
+      const clickedDate = format(d.date);
+      if (selectedDate === clickedDate) {
+        selectedDate = null; 
+      } else {
+        selectedDate = clickedDate;
+        selectedCategory = null; 
+      }
+      renderBarChart();
+      renderAreaChartAgain();
+      updateTable();
+    });
+
+  focus.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x));
+
+  focus.append("g")
+    .call(d3.axisLeft(y));
+
+  context.append("path")
+    .datum(data)
+    .attr("fill", "#ccc")
+    .attr("d", areaContext);
+
+  context.append("g")
+    .attr("transform", `translate(0,${contextHeight})`)
+    .call(d3.axisBottom(xContext));
 
   const brush = d3.brushX()
     .extent([[0, 0], [width, contextHeight]])
@@ -148,13 +196,25 @@ function renderAreaChart(rawData) {
       }
       const [x0, x1] = event.selection.map(xContext.invert);
       x.domain([x0, x1]);
-      focus.select("path").attr("d", area);
+      focusPath.attr("d", area);
       focus.select("g").call(d3.axisBottom(x));
       selectedTimeRange = [x0, x1];
       updateTable();
     });
 
-  context.append("g").attr("class", "brush").call(brush);
+  context.append("g")
+    .attr("class", "brush")
+    .call(brush);
+}
+
+function renderAreaChartAgain() {
+  const tsMap = d3.rollup(
+    fullData,
+    v => d3.sum(v, d => d.Amount),
+    d => d.Date
+  );
+  const timeSeriesData = Array.from(tsMap, ([date, value]) => ({ date, value })).sort((a, b) => new Date(a.date) - new Date(b.date));
+  renderAreaChart(timeSeriesData);
 }
 
 function renderBarChart() {
@@ -177,11 +237,16 @@ function renderBarChart() {
 
   const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const x = d3.scaleBand().domain(data.map(d => d.Category)).range([0, width]).padding(0.2);
-  const y = d3.scaleLinear().domain([0, d3.max(data, d => d.Total)]).range([height, 0]);
+  const x = d3.scaleBand()
+    .domain(data.map(d => d.Category))
+    .range([0, width])
+    .padding(0.2);
 
-  chart.append("g")
-    .selectAll("rect")
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.Total)])
+    .range([height, 0]);
+
+  chart.selectAll("rect")
     .data(data)
     .enter()
     .append("rect")
@@ -189,14 +254,21 @@ function renderBarChart() {
     .attr("y", d => y(d.Total))
     .attr("width", x.bandwidth())
     .attr("height", d => height - y(d.Total))
-    .attr("fill", d => d.Category === selectedCategory ? "#f28e2c" : colorScale(d.Category))
+    .attr("fill", d => colorScale(d.Category))
+    .attr("opacity", d => {
+      if (selectedCategory === null) return 1;
+      return selectedCategory === d.Category ? 1 : 0.3;
+    })
+    .style("cursor", "pointer")
     .on("click", function(event, d) {
       if (selectedCategory === d.Category) {
         selectedCategory = null;
       } else {
         selectedCategory = d.Category;
+        selectedDate = null;
       }
       renderBarChart();
+      renderAreaChartAgain();
       updateTable();
     });
 
