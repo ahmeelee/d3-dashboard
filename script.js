@@ -1,8 +1,6 @@
-// -------------------------------
-// 🟢 1. 인터랙티브 테이블
-// -------------------------------
+// 1. Interactive Table
 
-const data = [
+const tableData = [
     { Country: "USA", Category: "Dark", Sales: "120", Price: "2.5" },
     { Country: "France", Category: "Milk", Sales: "90", Price: "2.2" },
     { Country: "Japan", Category: "White", Sales: "70", Price: "1.9" },
@@ -11,7 +9,7 @@ const data = [
     { Country: "Canada", Category: "White", Sales: "75", Price: "2.0" }
   ];
   
-  renderTable(data);
+  renderTable(tableData);
   
   function renderTable(data) {
     const container = d3.select("#data-table");
@@ -56,9 +54,7 @@ const data = [
       .text(d => d);
   }
   
-  // -------------------------------
-  // 🔵 2. 시계열 에어리어 차트 with Brush
-  // -------------------------------
+  // 2. Time Series Chart
   
   const timeSeriesData = [
     { date: "2022-01-01", value: 200 },
@@ -146,4 +142,54 @@ const data = [
     context.append("g")
       .attr("class", "brush")
       .call(brush);
+  }
+  
+  // 3. Stacked Bar Chart by Category
+  
+  const barData = [
+    { Category: "Dark", Total: 230 },
+    { Category: "Milk", Total: 170 },
+    { Category: "White", Total: 145 }
+  ];
+  
+  renderBarChart(barData);
+  
+  function renderBarChart(data) {
+    const margin = { top: 30, right: 20, bottom: 40, left: 60 };
+    const width = 600 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
+  
+    const svg = d3.select("#bar-chart")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+  
+    const x = d3.scaleBand()
+      .domain(data.map(d => d.Category))
+      .range([0, width])
+      .padding(0.2);
+  
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.Total)])
+      .range([height, 0]);
+  
+    svg.append("g")
+      .selectAll("rect")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("x", d => x(d.Category))
+      .attr("y", d => y(d.Total))
+      .attr("width", x.bandwidth())
+      .attr("height", d => height - y(d.Total))
+      .attr("fill", "#4682b4");
+  
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x));
+  
+    svg.append("g")
+      .call(d3.axisLeft(y));
   }
