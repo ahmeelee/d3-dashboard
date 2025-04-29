@@ -104,15 +104,15 @@ function renderAreaChart(rawData) {
 
   const svg = d3.select("#area-chart")
     .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom + contextHeight + 40);
+    .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom + contextHeight + 40}`)
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .classed("responsive-svg", true);
 
   const focus = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
   const context = svg.append("g").attr("transform", `translate(${margin.left},${height + margin.top + 40})`);
 
   const x = d3.scaleTime().range([0, width]);
   const y = d3.scaleLinear().range([height, 0]);
-
   const xContext = d3.scaleTime().range([0, width]);
   const yContext = d3.scaleLinear().range([contextHeight, 0]);
 
@@ -131,26 +131,12 @@ function renderAreaChart(rawData) {
     .y0(contextHeight)
     .y1(d => yContext(d.value));
 
-  focus.append("path")
-    .datum(data)
-    .attr("fill", "#69b3a2")
-    .attr("d", area);
+  focus.append("path").datum(data).attr("fill", "#69b3a2").attr("d", area);
+  focus.append("g").attr("transform", `translate(0,${height})`).call(d3.axisBottom(x));
+  focus.append("g").call(d3.axisLeft(y));
 
-  focus.append("g")
-    .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(x));
-
-  focus.append("g")
-    .call(d3.axisLeft(y));
-
-  context.append("path")
-    .datum(data)
-    .attr("fill", "#ccc")
-    .attr("d", areaContext);
-
-  context.append("g")
-    .attr("transform", `translate(0,${contextHeight})`)
-    .call(d3.axisBottom(xContext));
+  context.append("path").datum(data).attr("fill", "#ccc").attr("d", areaContext);
+  context.append("g").attr("transform", `translate(0,${contextHeight})`).call(d3.axisBottom(xContext));
 
   const brush = d3.brushX()
     .extent([[0, 0], [width, contextHeight]])
@@ -164,14 +150,11 @@ function renderAreaChart(rawData) {
       x.domain([x0, x1]);
       focus.select("path").attr("d", area);
       focus.select("g").call(d3.axisBottom(x));
-
       selectedTimeRange = [x0, x1];
       updateTable();
     });
 
-  context.append("g")
-    .attr("class", "brush")
-    .call(brush);
+  context.append("g").attr("class", "brush").call(brush);
 }
 
 function renderBarChart() {
@@ -188,21 +171,16 @@ function renderBarChart() {
 
   const svg = d3.select("#bar-chart")
     .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+    .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .classed("responsive-svg", true);
 
-  const x = d3.scaleBand()
-    .domain(data.map(d => d.Category))
-    .range([0, width])
-    .padding(0.2);
+  const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d.Total)])
-    .range([height, 0]);
+  const x = d3.scaleBand().domain(data.map(d => d.Category)).range([0, width]).padding(0.2);
+  const y = d3.scaleLinear().domain([0, d3.max(data, d => d.Total)]).range([height, 0]);
 
-  svg.append("g")
+  chart.append("g")
     .selectAll("rect")
     .data(data)
     .enter()
@@ -222,13 +200,13 @@ function renderBarChart() {
       updateTable();
     });
 
-  svg.append("g")
+  chart.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x))
     .selectAll("text")
     .attr("transform", "rotate(-45)")
     .style("text-anchor", "end");
 
-  svg.append("g")
+  chart.append("g")
     .call(d3.axisLeft(y));
 }

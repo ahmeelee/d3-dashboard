@@ -45,6 +45,11 @@ body {
     min-width: 300px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
+
+  .responsive-svg {
+    width: 100%;
+    height: auto;
+  }
   
   #data-table-container {
     background-color: #ffffff;
