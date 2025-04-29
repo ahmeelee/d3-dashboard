@@ -1,10 +1,11 @@
 let selectedCategory = null;
-let selectedTimeRange = null;
+let selectedTimeRange = null; 
 
 d3.csv("Chocolate-Sales.csv").then(raw => {
   const parseDate = d3.timeParse("%d-%b-%y");
   const formatDate = d3.timeFormat("%Y-%m-%d");
 
+  // Data Preprocessing
   const data = raw.map(d => ({
     Country: d.Country,
     Product: d.Product,
@@ -30,9 +31,8 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
   const barData = Array.from(barMap, ([Category, Total]) => ({ Category, Total }))
     .sort((a, b) => d3.descending(a.Total, b.Total))
     .slice(0, 10);
-  renderBarChart(barData);
+  renderBarChart(barData, data);
 
-  // 테이블 렌더링
   function updateTable(fullData) {
     const container = d3.select("#data-table");
     container.html("");
@@ -41,11 +41,14 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
 
     if (selectedTimeRange) {
       const parseDate = d3.timeParse("%Y-%m-%d");
-
-      filtered = fullData.filter(d => {
+      filtered = filtered.filter(d => {
         const saleDate = parseDate(d.Date);
         return saleDate >= selectedTimeRange[0] && saleDate <= selectedTimeRange[1];
       });
+    }
+
+    if (selectedCategory) {
+      filtered = filtered.filter(d => d.Product === selectedCategory);
     }
 
     const table = container.append("table");
@@ -69,7 +72,8 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
         d3.selectAll("tr").style("background-color", null);
         d3.select(this).style("background-color", "#e6f7ff");
         selectedCategory = d.Product;
-        renderBarChart(barData);
+        renderBarChart(barData, fullData);
+        updateTable(fullData);
       });
 
     rows.selectAll("td")
@@ -79,7 +83,6 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
       .text(d => d);
   }
 
-  // 시계열 차트 (브러시 포함)
   function renderAreaChart(rawData, fullData) {
     const parse = d3.timeParse("%Y-%m-%d");
     const data = rawData.map(d => ({ date: parse(d.date), value: +d.value }));
@@ -161,13 +164,14 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
       .call(brush);
   }
 
-  // Bar Chart
-  function renderBarChart(data) {
+  function renderBarChart(data, fullData) {
     d3.select("#bar-chart").html("");
 
     const margin = { top: 30, right: 20, bottom: 40, left: 60 };
     const width = 600 - margin.left - margin.right;
     const height = 300 - margin.top - margin.bottom;
+
+    const colorScale = d3.scaleOrdinal(d3.schemeTableau10); 
 
     const svg = d3.select("#bar-chart")
       .append("svg")
@@ -194,7 +198,16 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
       .attr("y", d => y(d.Total))
       .attr("width", x.bandwidth())
       .attr("height", d => height - y(d.Total))
-      .attr("fill", d => d.Category === selectedCategory ? "#f28e2c" : "#4682b4");
+      .attr("fill", d => d.Category === selectedCategory ? "#f28e2c" : colorScale(d.Category))
+      .on("click", function(event, d) {
+        if (selectedCategory === d.Category) {
+          selectedCategory = null; 
+        } else {
+          selectedCategory = d.Category; 
+        }
+        renderBarChart(data, fullData);
+        updateTable(fullData);
+      });
 
     svg.append("g")
       .attr("transform", `translate(0,${height})`)
