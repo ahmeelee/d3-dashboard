@@ -1,0 +1,44 @@
+1. Load sales data from a CSV file (Chocolate-Sales.csv) using D3.js.
+
+2. Create a responsive dashboard layout:
+   - Align the area chart (time series) and bar chart horizontally.
+   - Place the searchable and scrollable data table underneath.
+
+3. Implement a time series area chart showing total sales amount by date:
+   - Allow brushing (dragging) to select a date range.
+   - When a range is selected, the data table should filter accordingly.
+
+4. Add click functionality to the time series chart:
+   - Clicking on a specific date highlights that date.
+   - When a date is clicked, the data table filters to show only entries from that date.
+   - Clicking the same date again should deselect it.
+
+5. Create a bar chart showing the top-selling products:
+   - Allow the user to choose between displaying the Top 5, Top 10, or Top 20 products via a dropdown menu.
+   - Clicking a bar highlights the selected product and fades out the non-selected bars (opacity change).
+   - Clicking the selected bar again resets the selection.
+
+6. Build a searchable and scrollable data table:
+   - Include a search bar to dynamically filter the products by name.
+   - Clicking a table row highlights the corresponding product in the bar chart and filters the other components accordingly.
+
+7. Ensure full interaction linkage between all components:
+   - Selecting a product (via bar chart or table) updates the area chart and table dynamically.
+   - Selecting a date (via area chart) updates the bar chart and table dynamically.
+   - Only one selection (product or date) should be active at a time — selecting one clears the other.
+
+8. Apply smooth visual feedback:
+   - Use opacity to fade out non-selected bars instead of changing colors.
+   - In the area chart, highlight the selected date point with a different color or size.
+
+9. Guarantee full responsiveness:
+   - Use viewBox and preserveAspectRatio attributes in all SVG elements.
+   - Ensure the layout and charts adapt automatically to different screen sizes.
+
+10. Deliver the following files:
+    - index.html
+    - style.css
+    - script.js
+    - Chocolate-Sales.csv
+    - README.md
+    - prompt.txt
