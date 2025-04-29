@@ -30,4 +30,4 @@ This project visualizes chocolate sales data using D3.js and provides an interac
 
 ---
 
-Developed for the Information Visualization Technologies course.
+Developed for the Information Visualization course.
