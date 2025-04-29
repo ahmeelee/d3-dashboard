@@ -1,11 +1,10 @@
 let selectedCategory = null;
+let selectedTimeRange = null;
 
 d3.csv("Chocolate-Sales.csv").then(raw => {
-  // 날짜 파싱
   const parseDate = d3.timeParse("%d-%b-%y");
   const formatDate = d3.timeFormat("%Y-%m-%d");
 
-  // 데이터 전처리
   const data = raw.map(d => ({
     Country: d.Country,
     Product: d.Product,
@@ -13,20 +12,16 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
     Amount: +d.Amount.replace(/[\$,]/g, "")
   }));
 
-  // 테이블용 데이터 (샘플)
-  const tableData = data.slice(0, 20);
-  renderTable(tableData);
+  updateTable(data);
 
-  // 시계열용 데이터 (날짜별 Amount 합계)
   const tsMap = d3.rollup(
     data,
     v => d3.sum(v, d => d.Amount),
     d => d.Date
   );
   const timeSeriesData = Array.from(tsMap, ([date, value]) => ({ date, value })).sort((a, b) => new Date(a.date) - new Date(b.date));
-  renderAreaChart(timeSeriesData);
+  renderAreaChart(timeSeriesData, data);
 
-  // 바 차트용 데이터 (Product별 Amount 합계)
   const barMap = d3.rollup(
     data,
     v => d3.sum(v, d => d.Amount),
@@ -37,16 +32,27 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
     .slice(0, 10);
   renderBarChart(barData);
 
-  // 테이블 클릭 시 바 차트 강조 업데이트
-  function renderTable(data) {
+  // 테이블 렌더링
+  function updateTable(fullData) {
     const container = d3.select("#data-table");
     container.html("");
+
+    let filtered = fullData;
+
+    if (selectedTimeRange) {
+      const parseDate = d3.timeParse("%Y-%m-%d");
+
+      filtered = fullData.filter(d => {
+        const saleDate = parseDate(d.Date);
+        return saleDate >= selectedTimeRange[0] && saleDate <= selectedTimeRange[1];
+      });
+    }
 
     const table = container.append("table");
     const thead = table.append("thead");
     const tbody = table.append("tbody");
 
-    const columns = Object.keys(data[0]);
+    const columns = Object.keys(filtered[0]);
 
     thead.append("tr")
       .selectAll("th")
@@ -56,7 +62,7 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
       .text(d => d);
 
     const rows = tbody.selectAll("tr")
-      .data(data)
+      .data(filtered)
       .enter()
       .append("tr")
       .on("click", function(event, d) {
@@ -73,7 +79,8 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
       .text(d => d);
   }
 
-  function renderAreaChart(rawData) {
+  // 시계열 차트 (브러시 포함)
+  function renderAreaChart(rawData, fullData) {
     const parse = d3.timeParse("%Y-%m-%d");
     const data = rawData.map(d => ({ date: parse(d.date), value: +d.value }));
 
@@ -135,11 +142,18 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
     const brush = d3.brushX()
       .extent([[0, 0], [width, contextHeight]])
       .on("brush end", event => {
-        if (!event.selection) return;
+        if (!event.selection) {
+          selectedTimeRange = null;
+          updateTable(fullData);
+          return;
+        }
         const [x0, x1] = event.selection.map(xContext.invert);
         x.domain([x0, x1]);
         focus.select("path").attr("d", area);
         focus.select("g").call(d3.axisBottom(x));
+
+        selectedTimeRange = [x0, x1];
+        updateTable(fullData);
       });
 
     context.append("g")
@@ -147,6 +161,7 @@ d3.csv("Chocolate-Sales.csv").then(raw => {
       .call(brush);
   }
 
+  // Bar Chart
   function renderBarChart(data) {
     d3.select("#bar-chart").html("");
 
