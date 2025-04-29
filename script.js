@@ -1,3 +1,4 @@
+let selectedTimeRange = null;
 let selectedCategory = null;
 
 // 1. Interactive Table
@@ -140,6 +141,8 @@ const tableData = [
         x.domain([x0, x1]);
         focus.select("path").attr("d", area);
         focus.select("g").call(d3.axisBottom(x));
+        selectedTimeRange = [x0, x1];
+        updateTableWithTimeRange();
       });
   
     context.append("g")
@@ -195,4 +198,20 @@ const tableData = [
   
     svg.append("g")
       .call(d3.axisLeft(y));
+  }
+
+  function updateTableWithTimeRange() {
+    if (!selectedTimeRange) {
+      renderTable(tableData); 
+      return;
+    }
+  
+    const parseDate = d3.timeParse("%Y-%m-%d");
+  
+    const filtered = tableData.filter(d => {
+      const saleDate = parseDate(d.date || "2022-01-01"); 
+      return saleDate >= selectedTimeRange[0] && saleDate <= selectedTimeRange[1];
+    });
+  
+    renderTable(filtered);
   }
