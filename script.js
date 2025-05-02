@@ -184,6 +184,10 @@ function renderAreaChart(rawData) {
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x));
 
+      focus.selectAll("circle")
+        .attr("cx", d => x(d.date))
+        .attr("cy", d => y(d.value));
+
       selectedTimeRange = [x0, x1];
       updateTable();
     });
